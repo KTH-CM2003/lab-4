@@ -1,0 +1,13 @@
+# Lab 4 Python packages (Python 3.12 or newer), for uv, pip or conda (see environment.yml).
+numpy==2.5.4
+scipy==1.18.1
+matplotlib==3.11.2
+ipykernel==7.4.0
+# PyTorch 2.14 is the newest release with a CUDA 12.6 build, which still supports older NVIDIA
+# drivers and GPUs (GTX 10xx and newer); PyTorch 2.15 needs CUDA 13.
+torch==2.14.1
+torchvision==0.29.1
+monai==1.6.2
+# Optional MONAI dependencies used in this lab: reading NIfTI files and progress bars
+nibabel==5.5.0
+tqdm==4.70.1

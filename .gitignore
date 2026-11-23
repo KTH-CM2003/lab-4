@@ -1,0 +1,6 @@
+cm2003/datasets/
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+*.pt
+*.pth

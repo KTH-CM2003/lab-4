@@ -1,6 +1,24 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+
+def compute_loss(loss_fn, output, target):
+    """
+    Compute the loss for a batch of segmentation predictions.
+
+    Args:
+        loss_fn (callable): Loss function, e.g. torch.nn.CrossEntropyLoss() or a MONAI loss such as
+            monai.losses.DiceLoss(to_onehot_y=True, softmax=True).
+        output (torch.Tensor): Model output (logits) of shape (B, C, H, W).
+        target (torch.Tensor): Label map of shape (B, 1, H, W) with the class index of each pixel.
+
+    Returns:
+        torch.Tensor: The loss.
+    """
+    if isinstance(loss_fn, nn.CrossEntropyLoss):
+        # nn.CrossEntropyLoss expects class indices of shape (B, H, W) as integers
+        return loss_fn(output, target.squeeze(1).long())
+    # MONAI losses take the label map with its channel dimension, (B, 1, H, W)
+    return loss_fn(output, target)
 
 def run_batch(model, data, target, loss_fn, optimizer):
     """
@@ -19,8 +37,7 @@ def run_batch(model, data, target, loss_fn, optimizer):
     model.train()
     optimizer.zero_grad()
     output = model(data)
-    num_classes = output.shape[1]
-    loss = loss_fn(output.permute(0, 2, 3, 1).reshape(-1, num_classes), target.reshape(-1).long())
+    loss = compute_loss(loss_fn, output, target)
     loss.backward()
     optimizer.step()
     return loss.item()
@@ -44,7 +61,6 @@ def train_epoch(model, dataloader, loss_fn, optimizer, device):
     total_loss = 0
     for batch in dataloader:
         data, target = batch["image"].to(device), batch["label"].to(device)
-        data, target = data.to(device), target.to(device)
         loss = run_batch(model, data, target, loss_fn, optimizer)
         total_loss += loss
     return total_loss / len(dataloader)
